@@ -41,7 +41,7 @@ services:
         user: root    # ← tambahkan ini
         volumes:
             - .:/app:Z
-            - ../api-undangan/public:/app/public:Z
+            - ../api-undangan:/app/api-undangan:Z 
         command: sh -c "chmod -R 777 /app/public 2>/dev/null; npm install && npm run build:public"
         networks:
             - undangan

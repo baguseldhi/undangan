@@ -30,8 +30,8 @@ services:
         user: root
         volumes:
             - .:/app
-            - ../api-undangan/public:/app/public
-        command: sh -c "chmod -R 777 /app/public 2>/dev/null; npm install && npm run build:public"
+            - ../api-undangan:/app/api-undangan
+        command: sh -c "chmod -R 777 /app/api-undangan/public 2>/dev/null; npm install && npm run build:public"
         networks:
             - undangan
 
