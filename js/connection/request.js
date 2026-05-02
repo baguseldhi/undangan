@@ -145,7 +145,7 @@ export const request = (method, path) => {
     const ac = new AbortController();
     const req = {
         signal: ac.signal,
-        credential: 'include',
+        credentials: 'include',
         headers: new Headers(defaultJSON),
         method: String(method).toUpperCase(),
     };

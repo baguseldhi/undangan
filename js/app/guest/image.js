@@ -49,9 +49,23 @@ export const image = (() => {
      * @returns {void}
      */
     const getByFetch = (el) => {
+        const url = el.getAttribute('data-src');
+
+        // Cek apakah URL eksternal
+        const isExternal = url.startsWith('http://') || url.startsWith('https://');
+
+        if (isExternal) {
+            // Load langsung tanpa fetch/credentials untuk URL eksternal
+            appendImage(el, url).catch((err) => {
+                console.error(err);
+                progress.invalid('image');
+            });
+            return;
+        }
+
         urlCache.push({
-            url: el.getAttribute('data-src'),
-            res: (url) => appendImage(el, url),
+            url,
+            res: (blobUrl) => appendImage(el, blobUrl),
             rej: (err) => {
                 console.error(err);
                 progress.invalid('image');

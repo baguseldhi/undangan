@@ -1,93 +1,52 @@
 import { cache } from '../connection/cache.js';
 
-/**
- * @param {ReturnType<typeof cache>} c
- * @returns {Promise<void>}
- */
-const loadAOS = (c) => {
-
-    const urlCss = 'https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css';
-    const urlJs = 'https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js';
-
-    /**
-     * @returns {Promise<void>}
-     */
-    const loadCss = () => c.get(urlCss).then((uri) => new Promise((res, rej) => {
+const loadAOS = () => {
+    return new Promise((res, rej) => {
         const link = document.createElement('link');
-        link.onload = res;
-        link.onerror = rej;
-
         link.rel = 'stylesheet';
-        link.href = uri;
+        link.href = '/assets/libs/aos.css';
+        link.onload = () => {
+            const sc = document.createElement('script');
+            sc.src = '/assets/libs/aos.js';
+            sc.onload = () => {
+                if (typeof window.AOS === 'undefined') {
+                    rej(new Error('AOS failed'));
+                    return;
+                }
+                window.AOS.init();
+                res();
+            };
+            sc.onerror = rej;
+            document.head.appendChild(sc);
+        };
+        link.onerror = rej;
         document.head.appendChild(link);
-    }));
-
-    /**
-     * @returns {Promise<void>}
-     */
-    const loadJs = () => c.get(urlJs).then((uri) => new Promise((res, rej) => {
-        const sc = document.createElement('script');
-        sc.onload = res;
-        sc.onerror = rej;
-
-        sc.src = uri;
-        document.head.appendChild(sc);
-    }));
-
-    return Promise.all([loadCss(), loadJs()]).then(() => {
-        if (typeof window.AOS === 'undefined') {
-            throw new Error('AOS library failed to load');
-        }
-
-        window.AOS.init();
     });
 };
 
-/**
- * @param {ReturnType<typeof cache>} c
- * @returns {Promise<void>}
- */
-const loadConfetti = (c) => {
-    const url = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.js';
-
-    return c.get(url).then((uri) => new Promise((res, rej) => {
+const loadConfetti = () => {
+    return new Promise((res, rej) => {
         const sc = document.createElement('script');
+        sc.src = '/assets/libs/confetti.browser.js';
+        sc.onload = () => typeof window.confetti === 'undefined' ? rej(new Error('Confetti failed')) : res();
         sc.onerror = rej;
-        sc.onload = () => {
-            typeof window.confetti === 'undefined' ? rej(new Error('Confetti library failed to load')) : res();
-        };
-
-        sc.src = uri;
         document.head.appendChild(sc);
-    }));
+    });
 };
 
-/**
- * @param {ReturnType<typeof cache>} c
- * @returns {Promise<void>}
- */
-const loadAdditionalFont = (c) => {
-
+const loadAdditionalFont = () => {
     const fonts = [
-        { css: 'https://fonts.googleapis.com/css2?family=Sacramento&display=swap', family: 'Sacramento' },
-        { css: 'https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic&display=swap', family: 'Noto Naskh Arabic' },
+        '/assets/libs/sacramento.css',
+        '/assets/libs/noto-naskh.css',
     ];
-
-    /**
-     * @param {object}
-     * @returns {Promise<void>}
-     */
-    const loadFont = ({ css, family }) => c.get(css).then((uri) => new Promise((res, rej) => {
+    return Promise.all(fonts.map(href => new Promise((res, rej) => {
         const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
         link.onload = res;
         link.onerror = rej;
-
-        link.rel = 'stylesheet';
-        link.href = uri;
         document.head.appendChild(link);
-    })).then(() => document.fonts.load(`1em "${family}"`));
-
-    return Promise.all(fonts.map(loadFont));
+    })));
 };
 
 /**
@@ -99,18 +58,17 @@ const loadAdditionalFont = (c) => {
  */
 export const loader = (opt = {}) => {
     const promises = [];
-    const c = cache('libs').withForceCache();
 
     if (opt?.aos ?? true) {
-        promises.push(loadAOS(c));
+        promises.push(loadAOS());
     }
 
     if (opt?.confetti ?? true) {
-        promises.push(loadConfetti(c));
+        promises.push(loadConfetti());
     }
 
     if (opt?.additionalFont ?? true) {
-        promises.push(loadAdditionalFont(c));
+        promises.push(loadAdditionalFont());
     }
 
     return Promise.all(promises);
