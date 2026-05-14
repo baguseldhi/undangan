@@ -16,7 +16,7 @@ services:
         environment:
             POSTGRES_DB: undangan
             POSTGRES_USER: undangan_user
-            POSTGRES_PASSWORD: ${DB_PASS}
+            POSTGRES_PASSWORD: Password123Aman!
         volumes:
             - postgres_data:/var/lib/postgresql/data
         networks:
@@ -28,6 +28,8 @@ services:
         container_name: undangan-frontend
         working_dir: /app
         user: root
+        environment:
+            - APP_URL=https://weddingnadiabagus.my.id
         volumes:
             - .:/app
             - ../api-undangan:/app/api-undangan
